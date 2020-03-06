@@ -1,44 +1,11 @@
-#include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
 #include <ArduinoOTA.h>
-
-#ifndef STASSID
-#define STASSID "Fibertel WiFi489 2.4GHz"
-#define STAPSK "0043744668"
-#endif
 
 class Ota
 {
 private:
-    const char *ssid = STASSID;
-    const char *password = STAPSK;
-
-    /* data */
 public:
     Ota()
     {
-        WiFi.mode(WIFI_STA);
-        WiFi.begin(ssid, password);
-        while (WiFi.waitForConnectResult() != WL_CONNECTED)
-        {
-            Serial.println("Connection Failed! Rebooting...");
-            delay(5000);
-            ESP.restart();
-        }
-
-        // Port defaults to 8266
-        // ArduinoOTA.setPort(8266);
-
-        // Hostname defaults to esp8266-[ChipID]
-        // ArduinoOTA.setHostname("myesp8266");
-
-        // No authentication by default
-        // ArduinoOTA.setPassword("admin");
-
-        // Password can be set with it's md5 value as well
-        // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
-        // ArduinoOTA.setPasswordHash("21232f297a57a5a743894a0e4a801fc3");
-
         ArduinoOTA.onStart([]() {
             String type;
             if (ArduinoOTA.getCommand() == U_FLASH)
@@ -83,9 +50,6 @@ public:
             }
         });
         ArduinoOTA.begin();
-        Serial.println("Ready");
-        Serial.print("IP address: ");
-        Serial.println(WiFi.localIP());
     }
     void handleOta()
     {

@@ -10,7 +10,7 @@ class StepMotor
 {
 private:
     //definicion variables
-    int motorSpeed = 800; // variable para determinar la velocidad
+    int motorSpeed = 1000; // variable para determinar la velocidad
     // 800 maxima - minima 1000 o mas
     int contadorPasos = 0;     // contador para los pasos
     int pasosPorVuelta = 4076; // pasos para una vuelta completa
