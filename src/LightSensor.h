@@ -7,7 +7,11 @@ void setupLightSensor(uint16_t pin) {
   pinMode(lightSensorPin, INPUT);
 }
 
-void handleLightSensor() {
+void printLightSensor() {
     Serial.print("Light ");
-    Serial.println(analogRead(lightSensorPin * 3.3 / 1023));
+    Serial.println(analogRead(lightSensorPin)  / 1023);
+}
+
+float getLightSensor() {
+  return analogRead(lightSensorPin) * 100 / 1023;
 }

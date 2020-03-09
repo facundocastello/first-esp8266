@@ -1,4 +1,7 @@
 #include <PubSubClient.h>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 const char *mqtt_server = "192.168.0.253";
 const char *username = "facumqtt";
@@ -10,6 +13,8 @@ long lastMsg = 0;
 char msg[50];
 int value = 0;
 
+String place = "";
+
 void callback(char *topic, byte *payload, unsigned int length)
 {
   Serial.print("Message arrived [");
@@ -20,6 +25,15 @@ void callback(char *topic, byte *payload, unsigned int length)
     Serial.print((char)payload[i]);
   }
   Serial.println();
+  // switch (topic)
+  // {
+  // case /* constant-expression */:
+  //   /* code */
+  //   break;
+
+  // default:
+  //   break;
+  // }
 }
 
 void reconnect()
@@ -32,8 +46,7 @@ void reconnect()
     if (client.connect(clientId.c_str(), username, password))
     {
       Serial.println("connected");
-      client.publish("outTopic", "hello world");
-      client.subscribe("inTopic");
+      client.subscribe((place + "/#").c_str());
     }
     else
     {
@@ -45,13 +58,14 @@ void reconnect()
   }
 }
 
-void initMqtt()
+void initMqtt(String rootPlace)
 {
   client.setServer(mqtt_server, 1883);
   client.setCallback(callback);
+  place = rootPlace;
 }
 
-void handleMqtt()
+void handleMqtt(String sendMessage, String topic)
 {
 
   if (!client.connected())
@@ -59,15 +73,11 @@ void handleMqtt()
     reconnect();
   }
   client.loop();
+  
+  client.publish((place + "/" + topic).c_str(), sendMessage.c_str());
+}
 
-  long now = millis();
-  if (now - lastMsg > 2000)
-  {
-    lastMsg = now;
-    ++value;
-    snprintf(msg, 50, "hello world #%ld", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
-    client.publish("outTopic", msg);
-  }
+void publishSensors(float temperature, float humidity, float lightSensor, float motion)
+{
+  handleMqtt("{ \"temperature\": " + String(temperature) + ",  \"humidity\": " + String(humidity) + ",  \"light\": " + String(lightSensor) + ",  \"motion\": " + String(motion) + " }", "sensors");
 }
