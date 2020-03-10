@@ -5,7 +5,6 @@
 #include "Buzzer.h"
 #include "Relay.h"
 #include "WiFi.h"
-#include "Mqtt.h"
 #include "Ota.h"
 
 const uint16_t lightSensor = A0;
@@ -13,9 +12,11 @@ const uint16_t DHT = D1;
 const uint16_t IrLed = D2;
 const uint16_t pirPin = D4;
 const uint16_t buzzer = D5;
-const uint16_t relay = 13; //D7
+const uint16_t relay = 13; //D6
 
-uint32_t delayMS = 5000;
+#include "Mqtt.h"
+
+uint32_t delayMS = 3600000;
 unsigned long previousTimeGeneral = 0;
 
 String housePlace = "desktop";
@@ -42,21 +43,10 @@ void loop()
   if (nowTime - previousTimeGeneral > delayMS)
   {
     previousTimeGeneral = nowTime;
-    
-    handleOta();
-    float temperature = getTemperature();
-    float humidity = getHumidity();
-    float lightSensor = getLightSensor();
-    float motion = digitalRead(pirPin);
-    publishSensors(temperature, humidity, lightSensor, motion);
-    Serial.print("Relay ");
-    // Serial.println(!digitalRead(relay));
-    triggerRelay();
-    handleIr(24, 0);
-    // handleBuzzer(true);
-
+    publishSensors();
     Serial.println();
   }
-  // handleMqtt();
+  handleOta();
+  handleMqtt();
   handleBuzzer(false);
 }

@@ -15,25 +15,70 @@ int value = 0;
 
 String place = "";
 
+
+void publishSensors()
+{
+
+  float temperature = getTemperature();
+  float humidity = getHumidity();
+  float lightSensor = getLightSensor();
+  float motion = digitalRead(pirPin);
+  String sendMessage = "{ \"temperature\": " + String(temperature) + ",  \"humidity\": " + String(humidity) + ",  \"light\": " + String(lightSensor) + ",  \"motion\": " + String(motion) + " }";
+
+  client.publish((place + "/sensors").c_str(), sendMessage.c_str());
+}
+
+
 void callback(char *topic, byte *payload, unsigned int length)
 {
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
+  std::vector<String> arrStrPayload;
+  String strPayload = "";
   for (int i = 0; i < length; i++)
   {
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-  // switch (topic)
-  // {
-  // case /* constant-expression */:
-  //   /* code */
-  //   break;
 
-  // default:
-  //   break;
-  // }
+    if (String((char)payload[i]) == String(","))
+    {
+      Serial.println(strPayload);
+      arrStrPayload.push_back(strPayload);
+      strPayload = "";
+    }
+    else
+    {
+      strPayload += (char)payload[i];
+    }
+  }
+  Serial.println(strPayload);
+  arrStrPayload.push_back(strPayload);
+  String strTopic = String(topic);
+  String subTopic = strTopic.substring(strTopic.indexOf("/") + 1, strTopic.length());
+
+  if (subTopic == "switch")
+  {
+    triggerRelay();
+  }
+  if (subTopic == "getSensors")
+  {
+    publishSensors();
+  }
+  if (subTopic == "buzzer")
+  {
+    handleBuzzer(true);
+  }
+  if (subTopic == "acToggle")
+  {
+    toggleAC(
+        arrStrPayload.size() > 0 ? arrStrPayload[0].toInt() : 24,
+        arrStrPayload.size() > 0 ? arrStrPayload[1].toInt() : 0);
+  }
+  if (subTopic == "acTemperature")
+  {
+    changeACSettings(
+        arrStrPayload.size() > 0 ? arrStrPayload[0].toInt() : 24,
+        arrStrPayload.size() > 0 ? arrStrPayload[1].toInt() : 0);
+  }
 }
 
 void reconnect()
@@ -65,19 +110,11 @@ void initMqtt(String rootPlace)
   place = rootPlace;
 }
 
-void handleMqtt(String sendMessage, String topic)
+void handleMqtt()
 {
-
   if (!client.connected())
   {
     reconnect();
   }
   client.loop();
-  
-  client.publish((place + "/" + topic).c_str(), sendMessage.c_str());
-}
-
-void publishSensors(float temperature, float humidity, float lightSensor, float motion)
-{
-  handleMqtt("{ \"temperature\": " + String(temperature) + ",  \"humidity\": " + String(humidity) + ",  \"light\": " + String(lightSensor) + ",  \"motion\": " + String(motion) + " }", "sensors");
 }

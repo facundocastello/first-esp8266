@@ -28,12 +28,26 @@ void setupIr(uint16_t IrLed)
   // ac->setVane(kWhirlpoolAcvan);
 }
 
-void handleIr(int temperature, int fan = 0)
+void toggleAC(int temperature, int fan = 0)
 {
   // Now send the IR signal.
 #if SEND_MITSUBISHI_AC
   Serial.println("Sending IR command to A/C ...");
   ac->setPowerToggle(true);
+  ac->setFan(fan);
+  ac->setMode(kWhirlpoolAcCool);
+  ac->setTemp(temperature);
+  ac->send();
+#endif // SEND_MITSUBISHI_AC
+  printState();
+}
+
+void changeACSettings(int temperature, int fan = 0)
+{
+  // Now send the IR signal.
+#if SEND_MITSUBISHI_AC
+  Serial.println("Sending IR command to A/C ...");
+  ac->setPowerToggle(false);
   ac->setFan(fan);
   ac->setMode(kWhirlpoolAcCool);
   ac->setTemp(temperature);
